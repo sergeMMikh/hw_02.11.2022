@@ -131,7 +131,7 @@ class PatchUserSchema(pydantic.BaseModel):
         return value
 
 
-def validate(data_to_validate: dict, validation_class: Type[CreateUserSchema]):
+def validate(data_to_validate: dict, validation_class: Type[CreateUserSchema] | Type[PatchUserSchema]):
     try:
         return validation_class(**data_to_validate).dict(exclude_none=True)
     except pydantic.ValidationError as err:
