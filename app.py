@@ -191,7 +191,40 @@ class UserView(MethodView):
             return jsonify({'status': 'success', 'id': user.id})
 
 
+class AdvView(MethodView):
+
+    def get(self, adv_id: int):
+        return jsonify({
+            'status': 'ok',
+            'request': 'get',
+            'id': adv_id
+        })
+
+    def post(self):
+        return jsonify({
+            'status': 'ok',
+            'request': 'post',
+            'id': 'post'
+        })
+
+    def patch(self, adv_id: int):
+        return jsonify({
+            'status': 'ok',
+            'request': 'patch',
+            'id': adv_id
+        })
+
+    def delete(self, adv_id: int):
+        return jsonify({
+            'status': 'ok',
+            'request': 'delete',
+            'id': adv_id
+        })
+
+
 app.add_url_rule('/user/<int:user_id>', view_func=UserView.as_view('users_get'), methods=['GET', 'PATCH', 'DELETE'])
 app.add_url_rule('/user/', view_func=UserView.as_view('users'), methods=['POST'])
+app.add_url_rule('/adv/<int:adv_id>', view_func=AdvView.as_view('adv_get'), methods=['GET', 'PATCH', 'DELETE'])
+app.add_url_rule('/adv/', view_func=AdvView.as_view('adv'), methods=['POST'])
 
 app.run()
