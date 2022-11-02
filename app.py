@@ -1,7 +1,7 @@
 import pydantic
 import re
 from typing import Type, Optional
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt, check_password_hash
 from flask import Flask, jsonify, request
 from flask.views import MethodView
 from sqlalchemy import Column, Integer, String, DateTime, create_engine, func, ForeignKey
@@ -113,7 +113,6 @@ class PatchUserSchema(pydantic.BaseModel):
 
     @pydantic.validator("email")
     def check_email(cls, value: str):
-        print(f'email: {value}')
         if not re.search(email_regex, value):
             raise ValueError("email is wrong")
 
@@ -134,7 +133,8 @@ class PatchUserSchema(pydantic.BaseModel):
 class CreateAdvSchema(pydantic.BaseModel):
     title: str
     description: str
-    user_id: int
+
+    # user_id: int
 
     @pydantic.validator("title")
     def check_title(cls, value: str):
@@ -166,6 +166,18 @@ def get_by_id(item_id: int, orm_model: Type[UserModel], session: Session):
         raise HttpError(404, 'item not found')
 
     return orm_item
+
+
+def get_user_id(item_json: dict, orm_model: Type[UserModel], session: Session):
+    user = session.query(UserModel).filter_by(name=item_json['name']).first()
+
+    if user is None:
+        raise HttpError(404, 'user not found')
+
+    if check_password_hash(user.password, item_json['password']):
+        raise HttpError(404, f'wrong password')
+
+    return user.id
 
 
 class UserView(MethodView):
@@ -226,6 +238,8 @@ class AdvView(MethodView):
         with Session() as session:
             try:
                 new_adv = AdvModel(**validate(json_data, CreateAdvSchema))
+                user_id = get_user_id(json_data, UserModel, session)
+                setattr(new_adv, 'user_id', user_id)
                 session.add(new_adv)
                 session.commit()
             except IntegrityError:
