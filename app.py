@@ -58,8 +58,8 @@ class AdvModel(Base):
     __tablename__ = 'adv'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(200), nullable=False)
-    description = Column(String(200), nullable=False)
+    title = Column(String(200), nullable=False, unique=True)
+    description = Column(String(2000), nullable=False)
     creation_time = Column(DateTime, server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
 
@@ -131,7 +131,28 @@ class PatchUserSchema(pydantic.BaseModel):
         return value
 
 
-def validate(data_to_validate: dict, validation_class: Type[CreateUserSchema] | Type[PatchUserSchema]):
+class CreateAdvSchema(pydantic.BaseModel):
+    title: str
+    description: str
+    user_id: int
+
+    @pydantic.validator("title")
+    def check_title(cls, value: str):
+        if len(value) > 200:
+            raise ValueError("The title length mast be less 200 chars")
+
+        return value
+
+    @pydantic.validator("description")
+    def check_description(cls, value: str):
+        if len(value) > 2000:
+            raise ValueError("The advertisement length mast be less 2000 chars")
+
+        return value
+
+
+def validate(data_to_validate: dict,
+             validation_class: Type[CreateUserSchema] | Type[PatchUserSchema] | Type[CreateAdvSchema]):
     try:
         return validation_class(**data_to_validate).dict(exclude_none=True)
     except pydantic.ValidationError as err:
@@ -201,11 +222,15 @@ class AdvView(MethodView):
         })
 
     def post(self):
-        return jsonify({
-            'status': 'ok',
-            'request': 'post',
-            'id': 'post'
-        })
+        json_data = request.json
+        with Session() as session:
+            try:
+                new_adv = AdvModel(**validate(json_data, CreateAdvSchema))
+                session.add(new_adv)
+                session.commit()
+            except IntegrityError:
+                raise HttpError(409, 'This title already exists')
+            return jsonify({'status': 'ok', 'id': new_adv.id})
 
     def patch(self, adv_id: int):
         return jsonify({
