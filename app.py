@@ -1,7 +1,7 @@
 import pydantic
 import re
 from typing import Type, Optional
-from flask_bcrypt import Bcrypt, check_password_hash
+from flask_bcrypt import Bcrypt
 from flask import Flask, jsonify, request
 from flask.views import MethodView
 from sqlalchemy import Column, Integer, String, DateTime, create_engine, func, ForeignKey
@@ -49,7 +49,7 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)
-    password = Column(String, nullable=False)
+    password = Column(String(255), nullable=False)
     email = Column(String(100), nullable=False, unique=True)
     advertisement = relationship("AdvModel", backref="user")
 
@@ -81,7 +81,6 @@ class CreateUserSchema(pydantic.BaseModel):
 
     @pydantic.validator("email")
     def check_email(cls, value: str):
-        print(f'email: {value}')
         if not re.search(email_regex, value):
             raise ValueError("email is wrong")
 
@@ -93,7 +92,7 @@ class CreateUserSchema(pydantic.BaseModel):
             raise ValueError("password to easy")
 
         value.encode()
-        value = bcrypt.generate_password_hash(value)
+        value = bcrypt.generate_password_hash(value, rounds=None)
         value = value.decode()
 
         return value
@@ -123,7 +122,7 @@ class PatchUserSchema(pydantic.BaseModel):
         if not re.search(password_regex, value):
             raise ValueError("password to easy")
 
-        value.encode()
+        value = value.encode()
         value = bcrypt.generate_password_hash(value)
         value = value.decode()
 
@@ -133,8 +132,6 @@ class PatchUserSchema(pydantic.BaseModel):
 class CreateAdvSchema(pydantic.BaseModel):
     title: str
     description: str
-
-    # user_id: int
 
     @pydantic.validator("title")
     def check_title(cls, value: str):
@@ -169,13 +166,19 @@ def get_by_id(item_id: int, orm_model: Type[UserModel], session: Session):
 
 
 def get_user_id(item_json: dict, orm_model: Type[UserModel], session: Session):
-    user = session.query(UserModel).filter_by(name=item_json['name']).first()
+    user = session.query(orm_model).filter_by(name=item_json['name']).first()
+
+    pw_hash = bcrypt.generate_password_hash('secret')
+    print(f'pw_hash: {pw_hash}')
+    print(bcrypt.check_password_hash(pw_hash, 'secret'))
 
     if user is None:
         raise HttpError(404, 'user not found')
 
-    if check_password_hash(user.password, item_json['password']):
-        raise HttpError(404, f'wrong password')
+    raw_password = item_json['password']
+
+    if bcrypt.check_password_hash(user.password, raw_password):
+        raise HttpError(404, f'wrong password: {raw_password} the original one is  {user.password}, user_id: {user.id}')
 
     return user.id
 
