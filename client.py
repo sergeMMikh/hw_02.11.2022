@@ -22,7 +22,11 @@ from pprint import pprint
 # print(data.status_code)
 # pprint(data.text)
 
-data = requests.delete('http://127.0.0.1:5000/adv/1')
+data = requests.delete('http://127.0.0.1:5000/adv/2',
+                     json={
+                         'name': 'fifth_user',
+                         'password': 'Fifth_user_123%',
+                     })
 
 print(data.status_code)
 pprint(data.text)

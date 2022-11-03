@@ -260,7 +260,9 @@ class AdvView(MethodView):
         })
 
     def delete(self, adv_id: int):
+        json_data = request.json
         with Session() as session:
+            user_id = get_user_id(json_data, UserModel, session)
             adv = get_by_id(adv_id, AdvModel, session)
             session.delete(adv)
             session.commit()
