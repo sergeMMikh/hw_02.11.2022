@@ -22,7 +22,7 @@ from pprint import pprint
 # print(data.status_code)
 # pprint(data.text)
 
-data = requests.get('http://127.0.0.1:5000/adv/2')
+data = requests.delete('http://127.0.0.1:5000/adv/1')
 
 print(data.status_code)
 pprint(data.text)
