@@ -266,7 +266,7 @@ class AdvView(MethodView):
             adv = get_by_id(adv_id, AdvModel, session)
             session.delete(adv)
             session.commit()
-            return jsonify({'status': 'success', 'id': adv.id})
+            return jsonify({'status': 'success', 'id': adv.id, 'user_id': user_id})
 
 
 app.add_url_rule('/user/<int:user_id>', view_func=UserView.as_view('users_get'), methods=['GET', 'PATCH', 'DELETE'])
