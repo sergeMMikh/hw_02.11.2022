@@ -175,10 +175,8 @@ def get_user_id(item_json: dict, orm_model: Type[UserModel], session: Session):
     if user is None:
         raise HttpError(404, 'user not found')
 
-    raw_password = item_json['password']
-
-    if bcrypt.check_password_hash(user.password, raw_password):
-        raise HttpError(404, f'wrong password: {raw_password} the original one is  {user.password}, user_id: {user.id}')
+    if not bcrypt.check_password_hash(user.password, item_json['password']):
+        raise HttpError(404, f'wrong password')
 
     return user.id
 

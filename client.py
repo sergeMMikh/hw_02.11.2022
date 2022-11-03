@@ -13,10 +13,10 @@ pprint(data.text)
 
 data = requests.post('http://127.0.0.1:5000/adv',
                      json={
-                         'title': '3 adv title',
+                         'title': '4 adv title',
                          'description': 'adv description',
                          'name': 'fifth_user',
-                         'password': 'тупо_кривой_пароль',
+                         'password': 'Fifth_user_123%',
                      })
 
 print(data.status_code)
