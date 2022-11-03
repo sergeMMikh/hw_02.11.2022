@@ -228,11 +228,16 @@ class UserView(MethodView):
 class AdvView(MethodView):
 
     def get(self, adv_id: int):
-        return jsonify({
-            'status': 'ok',
-            'request': 'get',
-            'id': adv_id
-        })
+        with Session() as session:
+            adv = get_by_id(adv_id, AdvModel, session)
+
+            if adv is None:
+                raise HttpError(404, 'user not found')
+
+            return jsonify({
+                'Title': adv.title,
+                'Description': adv.description
+            })
 
     def post(self):
         json_data = request.json
