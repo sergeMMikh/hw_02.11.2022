@@ -36,4 +36,4 @@ class AdvModel(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
 
 
-Base.metadata.create_all(engine)
+
