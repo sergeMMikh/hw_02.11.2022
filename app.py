@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
 
+from models import UserModel, Session, AdvModel
+
 app = Flask('app')
 bcrypt = Bcrypt(app)
 
@@ -29,12 +31,6 @@ def error_handler(error: HttpError):
     return response
 
 
-DSN = 'postgresql://app:1234@localhost:5432/adv_rest_api'
-
-engine = create_engine(DSN)
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
-
 password_regex = re.compile(
     "^(?=.*[a-z_])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&_])[A-Za-z\d@$!#%*?&_]{8,200}$"
 )
@@ -42,29 +38,6 @@ password_regex = re.compile(
 email_regex = re.compile(
     "([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
 )
-
-
-class UserModel(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, unique=True)
-    password = Column(String(255), nullable=False)
-    email = Column(String(100), nullable=False, unique=True)
-    advertisement = relationship("AdvModel", backref="user")
-
-
-class AdvModel(Base):
-    __tablename__ = 'adv'
-
-    id = Column(Integer, primary_key=True)
-    title = Column(String(200), nullable=False, unique=True)
-    description = Column(String(2000), nullable=False)
-    creation_time = Column(DateTime, server_default=func.now())
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-
-Base.metadata.create_all(engine)
 
 
 class CreateUserSchema(pydantic.BaseModel):
@@ -176,7 +149,7 @@ def get_user_id(item_json: dict, orm_model: Type[UserModel], session: Session):
         raise HttpError(404, 'user not found')
 
     if not bcrypt.check_password_hash(user.password, item_json['password']):
-        raise HttpError(404, f'wrong password')
+        raise HttpError(403, f'wrong password')
 
     return user.id
 
@@ -263,6 +236,9 @@ class AdvView(MethodView):
         json_data = request.json
         with Session() as session:
             user_id = get_user_id(json_data, UserModel, session)
+
+            if user_id != adv_id:
+                raise HttpError(403, "You don't have rights to delete this advertisement!")
             adv = get_by_id(adv_id, AdvModel, session)
             session.delete(adv)
             session.commit()
