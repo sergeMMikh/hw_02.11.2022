@@ -1,13 +1,6 @@
-import pydantic
-import re
-from typing import Type, Optional
-from flask_bcrypt import Bcrypt
-from flask import Flask, jsonify, request
-from flask.views import MethodView
 from sqlalchemy import Column, Integer, String, DateTime, create_engine, func, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker, relationship
 
 DSN = 'postgresql://app:1234@localhost:5432/adv_rest_api'
 

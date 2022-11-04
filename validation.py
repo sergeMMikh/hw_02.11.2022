@@ -1,17 +1,10 @@
-import pydantic
 import re
 from typing import Type, Optional
-from flask_bcrypt import Bcrypt
-from flask import Flask, jsonify, request
-from flask.views import MethodView
-from sqlalchemy import Column, Integer, String, DateTime, create_engine, func, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import IntegrityError
 
-from app import app, bcrypt
+import pydantic
+
+from app import bcrypt
 from errors import HttpError
-from models import UserModel, Session, AdvModel
 
 password_regex = re.compile(
     "^(?=.*[a-z_])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&_])[A-Za-z\d@$!#%*?&_]{8,200}$"
@@ -87,6 +80,24 @@ class PatchUserSchema(pydantic.BaseModel):
 class CreateAdvSchema(pydantic.BaseModel):
     title: str
     description: str
+
+    @pydantic.validator("title")
+    def check_title(cls, value: str):
+        if len(value) > 200:
+            raise ValueError("The title length mast be less 200 chars")
+
+        return value
+
+    @pydantic.validator("description")
+    def check_description(cls, value: str):
+        if len(value) > 2000:
+            raise ValueError("The advertisement length mast be less 2000 chars")
+
+        return value
+
+class PatchAdvSchema(pydantic.BaseModel):
+    title: Optional[str]
+    description: Optional[str]
 
     @pydantic.validator("title")
     def check_title(cls, value: str):

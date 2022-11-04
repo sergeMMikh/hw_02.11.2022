@@ -1,18 +1,12 @@
-import pydantic
-import re
-from typing import Type, Optional
-from flask_bcrypt import Bcrypt
-from flask import Flask, jsonify, request
+from typing import Type
+from flask import jsonify, request
 from flask.views import MethodView
-from sqlalchemy import Column, Integer, String, DateTime, create_engine, func, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
 
-from app import app, bcrypt
+from app import bcrypt
 from errors import HttpError
 from models import UserModel, Session, AdvModel
-from validation import validate, CreateUserSchema, PatchUserSchema, CreateAdvSchema
+from validation import validate, CreateUserSchema, PatchUserSchema, CreateAdvSchema, PatchAdvSchema
 
 
 def get_by_id(item_id: int, orm_model: Type[UserModel], session: Session):
@@ -112,11 +106,20 @@ class AdvView(MethodView):
             return jsonify({'status': 'ok', 'id': new_adv.id})
 
     def patch(self, adv_id: int):
-        return jsonify({
-            'status': 'ok',
-            'request': 'patch',
-            'id': adv_id
-        })
+        data_to_patch = validate(request.json, PatchAdvSchema)
+        json_data = request.json
+        with Session() as session:
+            user_id = get_user_id(json_data, UserModel, session)
+
+            if user_id != adv_id:
+                raise HttpError(403, "You don't have rights to delete this advertisement!")
+
+        adv = get_by_id(adv_id, AdvModel, session)
+
+        for field, value in data_to_patch.items():
+            setattr(adv, field, value)
+        session.commit()
+        return jsonify({'status': 'success', 'id': adv.id})
 
     def delete(self, adv_id: int):
         json_data = request.json
