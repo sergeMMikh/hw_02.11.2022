@@ -2,4 +2,6 @@
 
 This is my Flask homework according Netology Python course.
 
-To run server just coll main.py
+To run server: 
+ - type docker-compose up -d
+ - coll main.py

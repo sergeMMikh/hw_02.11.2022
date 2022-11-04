@@ -95,6 +95,7 @@ class CreateAdvSchema(pydantic.BaseModel):
 
         return value
 
+
 class PatchAdvSchema(pydantic.BaseModel):
     title: Optional[str]
     description: Optional[str]
@@ -115,7 +116,8 @@ class PatchAdvSchema(pydantic.BaseModel):
 
 
 def validate(data_to_validate: dict,
-             validation_class: Type[CreateUserSchema] | Type[PatchUserSchema] | Type[CreateAdvSchema]):
+             validation_class: Type[CreateUserSchema] | Type[PatchUserSchema] | Type[
+                 CreateAdvSchema] | Type[PatchAdvSchema]):
     try:
         return validation_class(**data_to_validate).dict(exclude_none=True)
     except pydantic.ValidationError as err:

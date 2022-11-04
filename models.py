@@ -27,6 +27,3 @@ class AdvModel(Base):
     description = Column(String(2000), nullable=False)
     creation_time = Column(DateTime, server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"))
-
-
-
