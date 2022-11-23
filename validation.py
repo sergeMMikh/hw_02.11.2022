@@ -20,7 +20,6 @@ class CreateUserSchema(pydantic.BaseModel):
     email: str
     password: str
 
-    @classmethod
     @pydantic.validator("name")
     def check_name(cls, value: str):
         if len(value) > 100:
@@ -28,7 +27,6 @@ class CreateUserSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("email")
     def check_email(cls, value: str):
         if not re.search(email_regex, value):
@@ -36,7 +34,6 @@ class CreateUserSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("password")
     def check_password(cls, value: str):
         if not re.search(password_regex, value):
@@ -54,7 +51,6 @@ class PatchUserSchema(pydantic.BaseModel):
     email: str
     password: Optional[str]
 
-    @classmethod
     @pydantic.validator("password")
     def check_name(cls, value: str):
         if len(value) > 32:
@@ -62,7 +58,6 @@ class PatchUserSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("email")
     def check_email(cls, value: str):
         if not re.search(email_regex, value):
@@ -70,7 +65,6 @@ class PatchUserSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("password")
     def check_password(cls, value: str):
         if not re.search(password_regex, value):
@@ -87,7 +81,6 @@ class CreateAdvSchema(pydantic.BaseModel):
     title: str
     description: str
 
-    @classmethod
     @pydantic.validator("title")
     def check_title(cls, value: str):
         if len(value) > 200:
@@ -95,7 +88,6 @@ class CreateAdvSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("description")
     def check_description(cls, value: str):
         if len(value) > 2000:
@@ -108,7 +100,6 @@ class PatchAdvSchema(pydantic.BaseModel):
     title: Optional[str]
     description: Optional[str]
 
-    @classmethod
     @pydantic.validator("title")
     def check_title(cls, value: str):
         if len(value) > 200:
@@ -116,7 +107,6 @@ class PatchAdvSchema(pydantic.BaseModel):
 
         return value
 
-    @classmethod
     @pydantic.validator("description")
     def check_description(cls, value: str):
         if len(value) > 2000:
